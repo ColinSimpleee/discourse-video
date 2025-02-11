@@ -3,8 +3,8 @@
 # name: discourse-video
 # about: Improved video upload and playback experience.
 # version: 0.1
-# authors: Blake Erickson
-# url: https://github.com/discourse/discourse-video
+# authors: IT-SIMPLE
+# url: https://github.com/ColinSimpleee/discourse-video
 
 enabled_site_setting :discourse_video_enabled
 
