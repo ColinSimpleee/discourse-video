@@ -7,6 +7,7 @@ import { i18n } from "discourse-i18n";
 import DiscourseVideoUploadForm from "../components/modal/discourse-video-upload-form";
 
 const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.min.js";
+const MUX_PLAYER_URL = "https://cdn.jsdelivr.net/npm/@mux/mux-player";
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("service:site-settings");
@@ -18,37 +19,25 @@ function initializeDiscourseVideo(api) {
       return;
     }
 
-    loadScript(HLS_SCRIPT_URL).then(() => {
+    loadScript(MUX_PLAYER_URL).then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
         if (!data.playback_id) {
           renderPlaceholder(videoContainer, "pending");
           return;
         }
 
-        let video = document.createElement("video");
-        video.className = "mux-video";
-        video.controls = "controls";
+        let muxPlayer = document.createElement("mux-player");
+        muxPlayer.setAttribute("playback-id", data.playback_id);
+        muxPlayer.setAttribute("stream-type", "on-demand");
+        muxPlayer.setAttribute("controls", true);
+        muxPlayer.setAttribute("accent-color", "#FF4800");
+        muxPlayer.className = "mux-video";
+
         let placeholder = videoContainer.querySelector(".icon-container");
         if (placeholder) {
-          videoContainer.replaceChild(video, placeholder);
+          videoContainer.replaceChild(muxPlayer, placeholder);
         } else {
-          videoContainer.appendChild(video);
-        }
-
-        const hlsUrl = `https://stream.mux.com/${data.playback_id}.m3u8`;
-
-        // Let native HLS support handle it if possible
-        if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          let hlsSource = document.createElement("source");
-          hlsSource.setAttribute("src", hlsUrl);
-          hlsSource.setAttribute("type", "application/x-mpegURL");
-          video.appendChild(hlsSource);
-        } else if (Hls.isSupported()) {
-          // enableWorker: false because https://github.com/borisirota/webworkify-webpack/issues/45
-          // and because it requires us to add 'worker-src: blob:' to our CSP
-          let hls = new Hls({ enableWorker: false });
-          hls.loadSource(hlsUrl);
-          hls.attachMedia(video);
+          videoContainer.appendChild(muxPlayer);
         }
       });
     });
