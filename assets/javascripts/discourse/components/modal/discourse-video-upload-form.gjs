@@ -2,6 +2,7 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
+import { on } from "@ember/modifier";
 import { Promise } from "rsvp";
 import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
@@ -24,6 +25,7 @@ export default class DiscourseVideoUploadForm extends Component {
   @tracked uploadProgress;
   @tracked videoInfo;
   @tracked uploading = false;
+  @tracked isDragging = false;
 
   afterUploadComplete = this.args.model?.afterUploadComplete || null;
 
@@ -181,6 +183,45 @@ export default class DiscourseVideoUploadForm extends Component {
     );
   }
 
+  @action
+  handleDragEnter(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = true;
+  }
+
+  @action
+  handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+  }
+
+  @action
+  handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      this.file = file;
+      this.getVideoDuration(file).then((duration) => {
+        this.videoDurationMinutes = this.durationMinutes(duration);
+      });
+    }
+  }
+
+  @action
+  triggerFileInput() {
+    document.getElementById("video-upload-input").click();
+  }
+
+  get acceptedVideoTypes() {
+    return this.videoExtensionsToArray()
+      .map((ext) => `.${ext}`)
+      .join(",");
+  }
+
   <template>
     <DModal
       @title={{i18n "discourse_video.modal_title"}}
@@ -189,26 +230,37 @@ export default class DiscourseVideoUploadForm extends Component {
       @closeModal={{@closeModal}}
     >
       <:body>
-        <h3>{{i18n "discourse_video.file"}}</h3>
-        <p>
+        <div
+          class="upload-area {{if this.isDragging 'is-dragging'}}"
+          {{on "dragenter" this.handleDragEnter}}
+          {{on "dragleave" this.handleDragLeave}}
+          {{on "dragover" this.handleDragEnter}}
+          {{on "drop" this.handleDrop}}
+          {{on "click" this.triggerFileInput}}
+          role="button"
+        >
           {{#if this.file}}
-            {{this.file.name}}
-            ({{this.fileSize}})
+            <p class="file-info">
+              {{this.file.name}}
+              ({{this.fileSize}})
+            </p>
+          {{else}}
+            <div class="upload-prompt">
+              {{dIcon "upload"}}
+              <div class="upload-prompt-text">Click or drag to upload your video</div>
+              <div class="upload-formats">Supported file formats:  MP4, MOV</div>
+              <div class="upload-size-limit">Max file size: 10MB per image, 200M per video</div>
+            </div>
           {{/if}}
-          <label
-            class="btn"
+          <input
+            type="file"
+            id="video-upload-input"
+            class="file-input"
             disabled={{this.uploading}}
-            title={{i18n "discourse_video.select_file"}}
-          >
-            {{dIcon "video"}}&nbsp;{{i18n "discourse_video.select_file"}}
-            <input
-              disabled={{this.uploading}}
-              type="file"
-              id="video-upload-input"
-              onchange={{this.fileChanged}}
-            />
-          </label>
-        </p>
+            accept={{this.acceptedVideoTypes}}
+            onchange={{this.fileChanged}}
+          />
+        </div>
       </:body>
       <:footer>
         {{#if this.uploading}}

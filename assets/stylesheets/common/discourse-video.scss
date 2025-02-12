@@ -23,3 +23,61 @@
 .mux-video {
   width: 100%;
 }
+
+.upload-area {
+  border: 1px dashed #FF4800;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.is-dragging {
+    border-color: var(--tertiary);
+    background: var(--tertiary-low);
+  }
+  
+  .upload-prompt {
+    color: var(--primary-medium);
+    
+    .d-icon {
+      font-size: 32px;
+    }
+  }
+
+  .upload-prompt-text {
+    color: #1d1d1d;
+    text-align: center;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 450;
+    line-height: 16px;
+    margin-top:16px;
+  }
+  
+  .upload-formats,
+  .upload-size-limit {
+    margin-top:8px;
+    color: #858585;
+    text-align: center;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 350;
+    line-height: 17px;
+  }
+  
+  .file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  
+  .file-info {
+    margin: 0;
+  }
+}
