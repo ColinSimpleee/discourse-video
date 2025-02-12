@@ -225,7 +225,6 @@ export default class DiscourseVideoUploadForm extends Component {
   <template>
     <DModal
       @title={{i18n "discourse_video.modal_title"}}
-      @subtitle={{i18n "discourse_video.modal_subtitle"}}
       class="discourse-video-upload-modal"
       @closeModal={{@closeModal}}
     >
