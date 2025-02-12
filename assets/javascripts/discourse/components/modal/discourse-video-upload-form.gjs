@@ -11,6 +11,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { i18n } from "discourse-i18n";
 import not from "truth-helpers/helpers/not";
+import { htmlSafe } from "@ember/template";
 
 const UPCHUNK = window.UpChunk;
 
@@ -26,6 +27,7 @@ export default class DiscourseVideoUploadForm extends Component {
   @tracked videoInfo;
   @tracked uploading = false;
   @tracked isDragging = false;
+  @tracked uploadProgressPercent = 0;
 
   afterUploadComplete = this.args.model?.afterUploadComplete || null;
 
@@ -116,6 +118,13 @@ export default class DiscourseVideoUploadForm extends Component {
 
   setProgress(key, args) {
     this.uploadProgress = i18n(`discourse_video.upload_progress.${key}`, args);
+    if (key === "uploading") {
+      this.uploadProgressPercent = parseFloat(args.progress);
+    } else if (key === "complete") {
+      this.uploadProgressPercent = 100;
+    } else {
+      this.uploadProgressPercent = 0;
+    }
   }
 
   setupUpChunk(videoInfo) {
@@ -222,6 +231,10 @@ export default class DiscourseVideoUploadForm extends Component {
       .join(",");
   }
 
+  get progressBarStyle() {
+    return htmlSafe(`width: ${this.uploadProgressPercent}%`);
+  }
+
   <template>
     <DModal
       @title={{i18n "discourse_video.modal_title"}}
@@ -263,7 +276,15 @@ export default class DiscourseVideoUploadForm extends Component {
       </:body>
       <:footer>
         {{#if this.uploading}}
-          {{this.uploadProgress}}
+          <div class="upload-progress">
+            <div class="progress-bar">
+              <div 
+                class="progress-fill" 
+                style={{this.progressBarStyle}}
+              ></div>
+            </div>
+            <div class="progress-text">{{this.uploadProgressPercent}}%</div>
+          </div>
         {{else}}
           <DButton
             @action={{this.upload}}
